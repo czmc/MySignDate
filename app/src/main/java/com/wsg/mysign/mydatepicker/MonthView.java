@@ -16,11 +16,14 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.os.Build;
 import android.os.Parcelable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Scroller;
+
+import com.wsg.mysigndate.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,7 +56,7 @@ public class MonthView extends View {
     private DecelerateInterpolator decelerateInterpolator = new DecelerateInterpolator();
     private AccelerateInterpolator accelerateInterpolator = new AccelerateInterpolator();
     private OnDateChangeListener onDateChangeListener;
-    private DatePicker.OnDatePickedListener onDatePickedListener;
+    private SignDatePicker.OnDatePickedListener onDatePickedListener;
     private OnDateScrollChangeListener onDateScrollChangeListener; //新加的滑动方向判断 目前没卵用  加着玩
     private ScaleAnimationListener scaleAnimationListener;
 
@@ -87,12 +90,13 @@ public class MonthView extends View {
     private boolean isScroll = true; //是否允许滑动
 
     private boolean isSelChangeColor = false; //选中的日期画笔是否变色
-    private int selChangeTextColor = mTManager.colorG();
+    private int selChangeTextColor = mTManager.colorSelectingText();
 
     private Map<String, BGCircle> cirApr = new HashMap<>();
     private Map<String, BGCircle> cirDpr = new HashMap<>();
 
     private List<String> dateSelected = new ArrayList<>();
+    private List<String> dateEnterSelected = new ArrayList<>();
 
     public MonthView(Context context) {
         super(context);
@@ -100,6 +104,8 @@ public class MonthView extends View {
             scaleAnimationListener = new ScaleAnimationListener();
         }
         mScroller = new Scroller(context);
+        dateEnterSelected.add("2016-9-16");
+        dateEnterSelected.add("2016-9-17");
         mPaint.setTextAlign(Paint.Align.CENTER);
     }
 
@@ -143,7 +149,7 @@ public class MonthView extends View {
                         isNewEvent = false;
                     }
                 }
-                if(isScroll){
+                if (isScroll) {
                     if (mSlideMode == SlideMode.HOR) {
                         int totalMoveX = (int) (lastPointX - event.getX()) + lastMoveX;
                         smoothScrollTo(totalMoveX, indexYear * height);
@@ -154,7 +160,7 @@ public class MonthView extends View {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if(isScroll){
+                if (isScroll) {
                     if (mSlideMode == SlideMode.VER) {
                         if (Math.abs(lastPointY - event.getY()) > 25) {
                             if (lastPointY < event.getY()) {
@@ -162,8 +168,8 @@ public class MonthView extends View {
                                     indexYear--;
                                     centerYear = centerYear - 1;
 
-                                    if(null!=onDateScrollChangeListener){
-                                        onDateScrollChangeListener.scrollBottom(centerYear,centerMonth);
+                                    if (null != onDateScrollChangeListener) {
+                                        onDateScrollChangeListener.scrollBottom(centerYear, centerMonth);
                                     }
                                 }
                             } else if (lastPointY > event.getY()) {
@@ -171,7 +177,7 @@ public class MonthView extends View {
                                     indexYear++;
                                     centerYear = centerYear + 1;
 
-                                    if(null!=onDateScrollChangeListener){
+                                    if (null != onDateScrollChangeListener) {
                                         onDateScrollChangeListener.scrollTop(centerYear, centerMonth);
                                     }
                                 }
@@ -193,7 +199,7 @@ public class MonthView extends View {
                                     centerMonth = 1;
                                     centerYear++;
                                 }
-                                if(null!=onDateScrollChangeListener){
+                                if (null != onDateScrollChangeListener) {
                                     onDateScrollChangeListener.scrollLeft(centerYear, centerMonth);
                                 }
                             } else if (lastPointX < event.getX() &&
@@ -204,8 +210,8 @@ public class MonthView extends View {
                                     centerMonth = 12;
                                     centerYear--;
                                 }
-                                if(null!=onDateScrollChangeListener){
-                                    onDateScrollChangeListener.scrollRight(centerYear,centerMonth);
+                                if (null != onDateScrollChangeListener) {
+                                    onDateScrollChangeListener.scrollRight(centerYear, centerMonth);
                                 }
                             }
                             buildRegion();
@@ -243,7 +249,7 @@ public class MonthView extends View {
         int cellH5 = (int) (h / 5F);
         int cellH6 = (int) (h / 6F);
 
-        circleRadius = cellW;
+        circleRadius = cellW - MeasureUtil.dp2px(getContext(), 10);
 
         animZoomOut1 = (int) (cellW * 1.2F);
         animZoomIn1 = (int) (cellW * 0.8F);
@@ -319,9 +325,18 @@ public class MonthView extends View {
 
     private void drawBGCircle(Canvas canvas, BGCircle circle) {
         canvas.save();
+        circle.getShape().getPaint().setColor(getResources().getColor(R.color.colorPrimary));
+        circle.getShape().getPaint().setStrokeWidth(MeasureUtil.dp2px(getContext(), 1.5f));
+        float gouCx=circle.getX();
+        float gouCy=circle.getY() + circle.getRadius() / 2+MeasureUtil.dp2px(getContext(),10);
+        canvas.drawLine(gouCx,gouCy,gouCx-MeasureUtil.dp2px(getContext(),3),gouCy-MeasureUtil.dp2px(getContext(),3),circle.getShape().getPaint());
+        canvas.drawLine(gouCx,gouCy,gouCx+MeasureUtil.dp2px(getContext(),5),gouCy-MeasureUtil.dp2px(getContext(),5),circle.getShape().getPaint());
         canvas.translate(circle.getX() - circle.getRadius() / 2,
                 circle.getY() - circle.getRadius() / 2);
+        circle.getShape().getPaint().setStyle(Paint.Style.STROKE);
         circle.getShape().getShape().resize(circle.getRadius(), circle.getRadius());
+        circle.getShape().getPaint().setAntiAlias(true);
+
         circle.getShape().draw(canvas);
         canvas.restore();
     }
@@ -356,6 +371,7 @@ public class MonthView extends View {
     private void draw(Canvas canvas, Rect rect, DPInfo info) {
         drawBG(canvas, rect, info);
         drawGregorian(canvas, rect, info.strG, info.isWeekend);
+        Log.i("MyTAG", "draw: " + info.strG + "_" + info.strF);
         if (isFestivalDisplay) drawFestival(canvas, rect, info.strF, info.isFestival);
         drawDecor(canvas, rect, info);
     }
@@ -365,6 +381,10 @@ public class MonthView extends View {
 //            LogUtils.e("drawBG===="+info.strG);
             mDPDecor.drawDecorBG(canvas, rect, mPaint,
                     centerYear + "-" + centerMonth + "-" + info.strG);
+        }
+        if (getEnterDateSelected().contains(centerYear + "-" + centerMonth + "-" + info.strG)) {
+            mPaint.setColor(mTManager.colorSelectedBg());
+            canvas.drawCircle(rect.centerX(), rect.centerY(), circleRadius / 2F, mPaint);
         }
         if (info.isToday && isTodayDisplay) {
             drawBGToday(canvas, rect);
@@ -405,14 +425,14 @@ public class MonthView extends View {
 //        if(isSelChangeColor&&mCManager.getSelDateList().contains(str)){ //选中了变色
 //            mPaint.setColor(selChangeTextColor);
 //        }
-
-
-        if(isSelChangeColor&&mCManager.getSelDateList().contains(str)){ //选中了变色
+        Log.i("MyTAG", "drawGregorian: " + getDateSelected());
+        if (isSelChangeColor && getEnterDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) {
+            mPaint.setColor(mTManager.colorSelecedText());
+        } else if (isSelChangeColor && getDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) { //选中了变色
             mPaint.setColor(selChangeTextColor);
         } else if (isWeekend) {
             mPaint.setColor(mTManager.colorWeekend());
-        }
-        else {
+        } else {
             mPaint.setColor(mTManager.colorG());
         }
 
@@ -514,11 +534,15 @@ public class MonthView extends View {
         return dateSelected;
     }
 
+    List<String> getEnterDateSelected() {
+        return dateEnterSelected;
+    }
+
     void setOnDateChangeListener(OnDateChangeListener onDateChangeListener) {
         this.onDateChangeListener = onDateChangeListener;
     }
 
-    public void setOnDatePickedListener(DatePicker.OnDatePickedListener onDatePickedListener) {
+    public void setOnDatePickedListener(SignDatePicker.OnDatePickedListener onDatePickedListener) {
         this.onDatePickedListener = onDatePickedListener;
     }
 
@@ -565,14 +589,15 @@ public class MonthView extends View {
         this.isDeferredDisplay = isDeferredDisplay;
     }
 
-    void setIsScroll(boolean isScroll){
-       this.isScroll = isScroll;
+    void setIsScroll(boolean isScroll) {
+        this.isScroll = isScroll;
     }
 
-    public void setIsSelChangeColor(boolean isSelChangeColor,int selChangeTextColor) {
+    public void setIsSelChangeColor(boolean isSelChangeColor, int selChangeTextColor) {
         this.isSelChangeColor = isSelChangeColor;
         this.selChangeTextColor = selChangeTextColor;
     }
+
 
     private void smoothScrollTo(int fx, int fy) {
         int dx = fx - mScroller.getFinalX();
@@ -697,63 +722,46 @@ public class MonthView extends View {
                         }
                         final String date = centerYear + "-" + centerMonth + "-" +
                                 mCManager.obtainDPInfo(centerYear, centerMonth)[i][j].strG;
-                        if (dateSelected.contains(date)) {
-                            dateSelected.remove(date);
-                            BGCircle circle = cirApr.get(date);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                ValueAnimator animScale = ObjectAnimator.ofInt(circle, "radius", circleRadius, 0);
-                                animScale.setDuration(250);
-                                animScale.setInterpolator(accelerateInterpolator);
-                                animScale.addUpdateListener(scaleAnimationListener);
-                                animScale.addListener(new AnimatorListenerAdapter() {
-                                    @Override
-                                    public void onAnimationEnd(Animator animation) {
-                                        cirDpr.remove(date);
-                                    }
-                                });
-                                animScale.start();
-                                cirDpr.put(date, circle);
-                            }
-                            cirApr.remove(date);
-                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                        if (dateEnterSelected.contains(date)) {
+                            if (dateSelected.contains(date)) {
+                                dateSelected.remove(date);
+                                cirApr.remove(date);
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                                    invalidate();
+                                }
+                                invalidate();
+                            } else {
+                                dateSelected.add(date);
+                                BGCircle circle = createCircle(
+                                        region.getBounds().centerX() + indexMonth * width,
+                                        region.getBounds().centerY() + indexYear * height);
+                                circle.setRadius(circleRadius);
+                                circle.setType(1);
+                                cirApr.put(date, circle);
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                                    invalidate();
+                                }
                                 invalidate();
                             }
                         } else {
-                            dateSelected.add(date);
-                            BGCircle circle = createCircle(
-                                    region.getBounds().centerX() + indexMonth * width,
-                                    region.getBounds().centerY() + indexYear * height);
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                ValueAnimator animScale1 =
-                                        ObjectAnimator.ofInt(circle, "radius", 0, animZoomOut1);
-                                animScale1.setDuration(250);
-                                animScale1.setInterpolator(decelerateInterpolator);
-                                animScale1.addUpdateListener(scaleAnimationListener);
-
-                                ValueAnimator animScale2 =
-                                        ObjectAnimator.ofInt(circle, "radius", animZoomOut1, animZoomIn1);
-                                animScale2.setDuration(100);
-                                animScale2.setInterpolator(accelerateInterpolator);
-                                animScale2.addUpdateListener(scaleAnimationListener);
-
-                                ValueAnimator animScale3 =
-                                        ObjectAnimator.ofInt(circle, "radius", animZoomIn1, animZoomOut2);
-                                animScale3.setDuration(150);
-                                animScale3.setInterpolator(decelerateInterpolator);
-                                animScale3.addUpdateListener(scaleAnimationListener);
-
-                                ValueAnimator animScale4 =
-                                        ObjectAnimator.ofInt(circle, "radius", animZoomOut2, circleRadius);
-                                animScale4.setDuration(50);
-                                animScale4.setInterpolator(accelerateInterpolator);
-                                animScale4.addUpdateListener(scaleAnimationListener);
-
-                                AnimatorSet animSet = new AnimatorSet();
-                                animSet.playSequentially(animScale1, animScale2, animScale3, animScale4);
-                                animSet.start();
-                            }
-                            cirApr.put(date, circle);
-                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                            if (dateSelected.contains(date)) {
+                                dateSelected.remove(date);
+                                cirApr.remove(date);
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                                    invalidate();
+                                }
+                                invalidate();
+                            } else {
+                                dateSelected.add(date);
+                                BGCircle circle = createCircle(
+                                        region.getBounds().centerX() + indexMonth * width,
+                                        region.getBounds().centerY() + indexYear * height);
+                                circle.setRadius(circleRadius);
+                                circle.setType(0);
+                                cirApr.put(date, circle);
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                                    invalidate();
+                                }
                                 invalidate();
                             }
                         }
@@ -798,7 +806,7 @@ public class MonthView extends View {
         if (null != onDateChangeListener) {
             onDateChangeListener.onYearChange(centerYear);
             onDateChangeListener.onMonthChange(centerMonth);
-            onDateChangeListener.onAllChange(centerYear,centerMonth);
+            onDateChangeListener.onAllChange(centerYear, centerMonth);
         }
     }
 
@@ -810,10 +818,13 @@ public class MonthView extends View {
         void onAllChange(int year, int month);
     }
 
-    interface OnDateScrollChangeListener{
+    interface OnDateScrollChangeListener {
         void scrollLeft(int year, int month); //往左边滑动 月份加一
+
         void scrollRight(int year, int month); //往右边滑动 月份减一
+
         void scrollTop(int year, int month); //往上边滑动 年份加一
+
         void scrollBottom(int year, int month); //往下边滑动 年份加一
 
     }
@@ -826,6 +837,7 @@ public class MonthView extends View {
     private class BGCircle {
         private float x, y;
         private int radius;
+        private int type;
 
         private ShapeDrawable shape;
 
@@ -863,6 +875,14 @@ public class MonthView extends View {
 
         public void setShape(ShapeDrawable shape) {
             this.shape = shape;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public void setType(int type) {
+            this.type = type;
         }
     }
 

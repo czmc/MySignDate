@@ -10,7 +10,7 @@
     tools:context=".MainActivity">
 
 
-    <com.wsg.mysign.mydatepicker.DatePicker
+    <com.wsg.mysign.mydatepicker.SignDatePicker
         android:id="@+id/my_datepicker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

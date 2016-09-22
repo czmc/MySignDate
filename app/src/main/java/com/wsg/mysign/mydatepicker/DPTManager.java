@@ -31,7 +31,6 @@ public final class DPTManager {
         }
         return sManager;
     }
-
     /**
      * 初始化主题对象
      * 
@@ -105,7 +104,18 @@ public final class DPTManager {
     public int colorHoliday() {
         return theme.colorHoliday();
     }
-
+    public int colorSelectingText() {
+        return theme.colorSelectingText();
+    }
+    public int colorSelecedText() {
+        return theme.colorSelectedText();
+    }
+    public int colorSelectingBg() {
+        return theme.colorSelectingBg();
+    }
+    public int colorSelectedBg() {
+        return theme.colorSelectedBg();
+    }
     /**
      * @see DPCNTheme#colorL()
      */

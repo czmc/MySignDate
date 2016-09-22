@@ -20,22 +20,25 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 /**
  *  原版DatePicker
  */
-public class DatePicker2 extends LinearLayout {
+public class SignDatePicker extends LinearLayout {
+    private final TextView cancleWork;
+    private final TextView goWork;
+    private final LayoutParams cancelParam;
+    private final LayoutParams goWorkParam;
     private DPTManager mTManager;// 主题管理器
     private DPLManager mLManager;// 语言管理器
 
     private MonthView monthView;// 月视图
     private TextView tvYear, tvMonth;// 年份 月份显示
-    private TextView tvEnsure;// 确定按钮显示
 
 
-    private DatePicker.OnDateSelectedListener onDateSelectedListener;// 日期多选后监听
+    private SignDatePicker.OnDateSelectedListener onDateSelectedListener;// 日期多选后监听
 
-    public DatePicker2(Context context) {
+    public SignDatePicker(Context context) {
         this(context, null);
     }
 
-    public DatePicker2(final Context context, AttributeSet attrs) {
+    public SignDatePicker(final Context context, AttributeSet attrs) {
         super(context, attrs);
         mTManager = DPTManager.getInstance();
         mLManager = DPLManager.getInstance();
@@ -86,23 +89,9 @@ public class DatePicker2 extends LinearLayout {
         tvMonth.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         tvMonth.setTextColor(mTManager.colorTitle());
 
-        // 确定显示
-        tvEnsure = new TextView(context);
-        tvEnsure.setText(mLManager.titleEnsure());
-        tvEnsure.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        tvEnsure.setTextColor(mTManager.colorTitle());
-        tvEnsure.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != onDateSelectedListener) {
-                    onDateSelectedListener.onDateSelected(monthView.getDateSelected());
-                }
-            }
-        });
 
         rlTitle.addView(tvYear, lpYear);
         rlTitle.addView(tvMonth, lpMonth);
-        rlTitle.addView(tvEnsure, lpEnsure);
 
         addView(rlTitle, llParams);
 
@@ -119,6 +108,7 @@ public class DatePicker2 extends LinearLayout {
 
         // ------------------------------------------------------------------------------------月视图
         monthView = new MonthView(context);
+        monthView.setIsSelChangeColor(true,mTManager.colorSelectingText());
         monthView.setOnDateChangeListener(new MonthView.OnDateChangeListener() {
             @Override
             public void onMonthChange(int month) {
@@ -167,8 +157,56 @@ public class DatePicker2 extends LinearLayout {
             }
         });
         addView(monthView, llParams);
+        //年份显示
+        cancleWork = new TextView(context);
+        cancleWork.setText("取消上班");
+        cancleWork.setClickable(true);
+        cancleWork.setPadding(0,MeasureUtil.dp2px(getContext(),15),0,MeasureUtil.dp2px(getContext(),15));
+        cancleWork.setBackgroundColor(getResources().getColor(R.color.colorPrimaryShape));
+        cancleWork.setGravity(Gravity.CENTER);
+        cancleWork.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        cancleWork.setTextColor(mTManager.colorBG());
+        cancleWork.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (null != onDateSelectedListener) {
+                    onDateSelectedListener.oncancelGoWok(monthView.getDateSelected());
+                }
+            }
+        });
+        // 月份显示
+        goWork = new TextView(context);
+        goWork.setText("打卡上班");
+        goWork.setClickable(true);
+        goWork.setGravity(Gravity.CENTER);
+        goWork.setPadding(0,MeasureUtil.dp2px(getContext(),15),0,MeasureUtil.dp2px(getContext(),15));
+        goWork.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        goWork.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        goWork.setTextColor(mTManager.colorBG());
+        goWork.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (null != onDateSelectedListener) {
+                    onDateSelectedListener.onGoWok(monthView.getDateSelected());
+                }
+            }
+        });
+       LinearLayout opera =  new LinearLayout(getContext());
+        opera.setOrientation(HORIZONTAL);
+        cancelParam = new LayoutParams(0,WRAP_CONTENT);
+        cancelParam.weight=1;
+        goWorkParam= new LayoutParams(0,WRAP_CONTENT);
+        goWorkParam.weight=1;
+        opera.addView(cancleWork, cancelParam);
+        opera.addView(goWork, goWorkParam);
+        addView(opera);
     }
-
+    public List getDateSelected(){
+       return monthView.getDateSelected();
+    }
+    public List getDateEnterSelected(){
+        return monthView.getEnterDateSelected();
+    }
     /**
      * 设置初始化年月日期
      *
@@ -195,9 +233,6 @@ public class DatePicker2 extends LinearLayout {
      * @param mode ...
      */
     public void setMode(DPMode mode) {
-        if (mode != DPMode.MULTIPLE) {
-            tvEnsure.setVisibility(GONE);
-        }
         monthView.setDPMode(mode);
     }
 
@@ -233,30 +268,32 @@ public class DatePicker2 extends LinearLayout {
         monthView.setDeferredDisplay(isDeferredDisplay);
     }
 
-    /**
-     * 设置单选监听器
-     *
-     * @param onDatePickedListener ...
-     */
-    public void setOnDatePickedListener(DatePicker.OnDatePickedListener onDatePickedListener) {
-        if (monthView.getDPMode() != DPMode.SINGLE) {
-            throw new RuntimeException(
-                    "Current DPMode does not SINGLE! Please call setMode set DPMode to SINGLE!");
-        }
-        monthView.setOnDatePickedListener(onDatePickedListener);
-    }
+
 
     /**
      * 设置多选监听器
      *
      * @param onDateSelectedListener ...
      */
-    public void setOnDateSelectedListener(DatePicker.OnDateSelectedListener onDateSelectedListener) {
+    public void setOnDateSelectedListener(SignDatePicker.OnDateSelectedListener onDateSelectedListener) {
         if (monthView.getDPMode() != DPMode.MULTIPLE) {
             throw new RuntimeException(
                     "Current DPMode does not MULTIPLE! Please call setMode set DPMode to MULTIPLE!");
         }
         this.onDateSelectedListener = onDateSelectedListener;
+    }
+
+    public void setUpDate(List<String> strings) {
+        monthView.getEnterDateSelected().addAll(strings);
+    }
+
+
+    /**
+     * 日期多选监听器
+     */
+    public interface OnDateSelectedListener {
+        void onGoWok(List<String> date);
+        void oncancelGoWok(List<String> date);
     }
 
 }

@@ -20,12 +20,12 @@ public class DPBaseTheme extends DPTheme {
 
     @Override
     public int colorTitleBG() {
-        return 0xFFF37B7A;
+        return 0xFFE9E9E9;
     }
 
     @Override
     public int colorTitle() {
-        return 0xEEFFFFFF;
+        return 0xEE656668;
     }
 
     @Override
@@ -36,6 +36,26 @@ public class DPBaseTheme extends DPTheme {
     @Override
     public int colorG() {
         return 0xEE333333;
+    }
+
+    @Override
+    public int colorSelectingText() {
+        return 0xff27D7C0;
+    }
+
+    @Override
+    public int colorSelectedText() {
+        return 0xffffffff;
+    }
+
+    @Override
+    public int colorSelectingBg() {
+        return 0xffffff;
+    }
+
+    @Override
+    public int colorSelectedBg() {
+        return 0xff27D7C0;
     }
 
     @Override

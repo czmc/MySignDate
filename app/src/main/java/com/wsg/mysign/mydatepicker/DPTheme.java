@@ -64,6 +64,10 @@ public abstract class DPTheme {
      */
     public abstract int colorG();
 
+    public abstract int colorSelectingText();
+    public abstract int colorSelectedText();
+    public abstract int colorSelectingBg();
+    public abstract int colorSelectedBg();
     /**
      * 节日文本颜色
      * 
