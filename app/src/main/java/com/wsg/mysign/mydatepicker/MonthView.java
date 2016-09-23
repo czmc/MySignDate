@@ -97,6 +97,7 @@ public class MonthView extends View {
 
     private List<String> dateSelected = new ArrayList<>();
     private List<String> dateEnterSelected = new ArrayList<>();
+    private List<String> dateCancelSelected = new ArrayList<>();
 
     public MonthView(Context context) {
         super(context);
@@ -106,6 +107,8 @@ public class MonthView extends View {
         mScroller = new Scroller(context);
         dateEnterSelected.add("2016-9-16");
         dateEnterSelected.add("2016-9-17");
+        dateCancelSelected.add("2016-9-27");
+        dateCancelSelected.add("2016-9-28");
         mPaint.setTextAlign(Paint.Align.CENTER);
     }
 
@@ -328,9 +331,9 @@ public class MonthView extends View {
         circle.getShape().getPaint().setColor(getResources().getColor(R.color.colorPrimary));
         circle.getShape().getPaint().setStrokeWidth(MeasureUtil.dp2px(getContext(), 1.5f));
         float gouCx=circle.getX();
-        float gouCy=circle.getY() + circle.getRadius() / 2+MeasureUtil.dp2px(getContext(),10);
-        canvas.drawLine(gouCx,gouCy,gouCx-MeasureUtil.dp2px(getContext(),3),gouCy-MeasureUtil.dp2px(getContext(),3),circle.getShape().getPaint());
-        canvas.drawLine(gouCx,gouCy,gouCx+MeasureUtil.dp2px(getContext(),5),gouCy-MeasureUtil.dp2px(getContext(),5),circle.getShape().getPaint());
+        float gouCy=circle.getY() + circle.getRadius() / 2+ MeasureUtil.dp2px(getContext(),10);
+        canvas.drawLine(gouCx,gouCy,gouCx- MeasureUtil.dp2px(getContext(),3),gouCy- MeasureUtil.dp2px(getContext(),3),circle.getShape().getPaint());
+        canvas.drawLine(gouCx,gouCy,gouCx+ MeasureUtil.dp2px(getContext(),5),gouCy- MeasureUtil.dp2px(getContext(),5),circle.getShape().getPaint());
         canvas.translate(circle.getX() - circle.getRadius() / 2,
                 circle.getY() - circle.getRadius() / 2);
         circle.getShape().getPaint().setStyle(Paint.Style.STROKE);
@@ -386,6 +389,10 @@ public class MonthView extends View {
             mPaint.setColor(mTManager.colorSelectedBg());
             canvas.drawCircle(rect.centerX(), rect.centerY(), circleRadius / 2F, mPaint);
         }
+        if (getCancelDateSelected().contains(centerYear + "-" + centerMonth + "-" + info.strG)) {
+            mPaint.setColor(mTManager.colorCancelBg());
+            canvas.drawCircle(rect.centerX(), rect.centerY(), circleRadius / 2F, mPaint);
+        }
         if (info.isToday && isTodayDisplay) {
             drawBGToday(canvas, rect);
         } else {
@@ -428,9 +435,18 @@ public class MonthView extends View {
         Log.i("MyTAG", "drawGregorian: " + getDateSelected());
         if (isSelChangeColor && getEnterDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) {
             mPaint.setColor(mTManager.colorSelecedText());
-        } else if (isSelChangeColor && getDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) { //选中了变色
+        }
+        else if (getCancelDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) { //选中了变色
+            mPaint.setColor(mTManager.colorSelecedText());
+        }
+        else if (getCancelDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) { //选中了变色
+            mPaint.setColor(mTManager.colorSelecedText());
+        }
+
+        else if (isSelChangeColor && getDateSelected().contains(centerYear + "-" + centerMonth + "-" + str)) { //选中了变色
             mPaint.setColor(selChangeTextColor);
-        } else if (isWeekend) {
+        }
+        else if (isWeekend) {
             mPaint.setColor(mTManager.colorWeekend());
         } else {
             mPaint.setColor(mTManager.colorG());
@@ -536,6 +552,9 @@ public class MonthView extends View {
 
     List<String> getEnterDateSelected() {
         return dateEnterSelected;
+    }
+    List<String> getCancelDateSelected() {
+        return dateCancelSelected;
     }
 
     void setOnDateChangeListener(OnDateChangeListener onDateChangeListener) {
@@ -722,6 +741,8 @@ public class MonthView extends View {
                         }
                         final String date = centerYear + "-" + centerMonth + "-" +
                                 mCManager.obtainDPInfo(centerYear, centerMonth)[i][j].strG;
+                        if (getCancelDateSelected().contains(date))
+                            return;
                         if (dateEnterSelected.contains(date)) {
                             if (dateSelected.contains(date)) {
                                 dateSelected.remove(date);
@@ -892,6 +913,15 @@ public class MonthView extends View {
         public void onAnimationUpdate(ValueAnimator animation) {
             MonthView.this.invalidate();
         }
+    }
+    public void clearSelected(){
+        if(dateSelected==null) return;
+        for (String date:dateSelected){
+            cirApr.remove(date);
+        }
+//        cirApr.clear();
+        dateSelected.clear();
+
     }
 
 

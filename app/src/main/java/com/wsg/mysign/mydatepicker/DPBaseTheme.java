@@ -59,6 +59,11 @@ public class DPBaseTheme extends DPTheme {
     }
 
     @Override
+    public int colorCancelBg() {
+        return 0xffE3E3E3;
+    }
+
+    @Override
     public int colorF() {
         return 0xEEC08AA4;
     }

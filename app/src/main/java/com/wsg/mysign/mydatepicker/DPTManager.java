@@ -116,6 +116,9 @@ public final class DPTManager {
     public int colorSelectedBg() {
         return theme.colorSelectedBg();
     }
+    public int colorCancelBg() {
+        return theme.colorCancelBg();
+    }
     /**
      * @see DPCNTheme#colorL()
      */

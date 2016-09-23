@@ -159,9 +159,9 @@ public class SignDatePicker extends LinearLayout {
         addView(monthView, llParams);
         //年份显示
         cancleWork = new TextView(context);
-        cancleWork.setText("取消上班");
+        cancleWork.setText("休息");
         cancleWork.setClickable(true);
-        cancleWork.setPadding(0,MeasureUtil.dp2px(getContext(),15),0,MeasureUtil.dp2px(getContext(),15));
+        cancleWork.setPadding(0, MeasureUtil.dp2px(getContext(),15),0, MeasureUtil.dp2px(getContext(),15));
         cancleWork.setBackgroundColor(getResources().getColor(R.color.colorPrimaryShape));
         cancleWork.setGravity(Gravity.CENTER);
         cancleWork.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
@@ -170,7 +170,7 @@ public class SignDatePicker extends LinearLayout {
             @Override
             public void onClick(View v) {
                 if (null != onDateSelectedListener) {
-                    onDateSelectedListener.oncancelGoWok(monthView.getDateSelected());
+                    onDateSelectedListener.onCancelGoWok(monthView.getDateSelected());
                 }
             }
         });
@@ -179,7 +179,7 @@ public class SignDatePicker extends LinearLayout {
         goWork.setText("打卡上班");
         goWork.setClickable(true);
         goWork.setGravity(Gravity.CENTER);
-        goWork.setPadding(0,MeasureUtil.dp2px(getContext(),15),0,MeasureUtil.dp2px(getContext(),15));
+        goWork.setPadding(0, MeasureUtil.dp2px(getContext(),15),0, MeasureUtil.dp2px(getContext(),15));
         goWork.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
         goWork.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
         goWork.setTextColor(mTManager.colorBG());
@@ -206,6 +206,9 @@ public class SignDatePicker extends LinearLayout {
     }
     public List getDateEnterSelected(){
         return monthView.getEnterDateSelected();
+    }
+    public List getDateCancelSelected(){
+        return monthView.getCancelDateSelected();
     }
     /**
      * 设置初始化年月日期
@@ -270,6 +273,9 @@ public class SignDatePicker extends LinearLayout {
 
 
 
+    public void clearSelected(){
+        monthView.clearSelected();
+    }
     /**
      * 设置多选监听器
      *
@@ -286,6 +292,9 @@ public class SignDatePicker extends LinearLayout {
     public void setUpDate(List<String> strings) {
         monthView.getEnterDateSelected().addAll(strings);
     }
+    public void setCancleDate(List<String> strings) {
+        monthView.getCancelDateSelected().addAll(strings);
+    }
 
 
     /**
@@ -293,7 +302,10 @@ public class SignDatePicker extends LinearLayout {
      */
     public interface OnDateSelectedListener {
         void onGoWok(List<String> date);
-        void oncancelGoWok(List<String> date);
+        void onCancelGoWok(List<String> date);
     }
 
+    public interface OnDatePickedListener {
+        void onDatePicked(String date);
+    }
 }
